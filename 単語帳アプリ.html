@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0052)file:///C:/Users/User/Downloads/flashcard_app_2.html -->
+<!-- saved from url=(0052)file:///C:/Users/User/Downloads/flashcard_app_3.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -319,7 +319,7 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
 <nav>
   <div class="logo">📖 単語帳</div>
   <div class="deck-selector-wrap">
-    <select class="deck-selector" id="deck-selector" onchange="switchDeck()"><option value="1">🇺🇸 英語基礎</option><option value="2">🌐 英語で日本語学習</option><option value="4">🇨🇳 中国語</option><option value="3" selected="">🇪🇸 スペイン語</option><option value="5">🌐 ウクライナ語</option></select>
+    <select class="deck-selector" id="deck-selector" onchange="switchDeck()"><option value="1">🇺🇸 英語基礎</option><option value="2">🌐 英語で日本語学習</option><option value="5">🌐 ウクライナ語</option><option value="4">🇨🇳 中国語</option><option value="3" selected="">🇪🇸 スペイン語</option></select>
     <button class="btn-deck-manage" onclick="openDeckModal()">+ デッキ管理</button>
   </div>
   <div class="nav-tabs">
@@ -332,27 +332,36 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
   <!-- STUDY -->
   <div class="page active" id="page-study">
     <div class="stats-bar">
-      <div class="stat-card s-total"><div class="stat-num" id="total-count">0</div><div class="stat-label">総単語数</div></div>
+      <div class="stat-card s-total"><div class="stat-num" id="total-count">8</div><div class="stat-label">総単語数</div></div>
       <div class="stat-card s-green"><div class="stat-num" id="mastered-count">0</div><div class="stat-label">習得済み</div></div>
-      <div class="stat-card s-yellow"><div class="stat-num" id="weak-count">0</div><div class="stat-label">苦手</div></div>
+      <div class="stat-card s-yellow"><div class="stat-num" id="weak-count">1</div><div class="stat-label">苦手</div></div>
     </div>
 
     <div id="study-area" style="display: block;">
       <div class="card-area" id="card-area" onclick="flipCard()">
         <div class="card-inner" id="card-inner">
-          <div class="card-face card-front" id="card-front"><div class="empty-card-msg"><div class="ei">📚</div><div>単語を追加して学習を始めましょう</div></div></div>
-          <div class="card-face card-back" id="card-back"></div>
+          <div class="card-face card-front" id="card-front">
+    <div class="card-tag newword">🆕 NEW</div>
+    <div class="card-hint">その他</div>
+    <div class="card-word">01接続詞</div>
+    
+  </div>
+          <div class="card-face card-back" id="card-back">
+    <div class="card-hint">意味</div>
+    <div class="card-meaning">conjunction</div>
+    <div class="card-example">en-GB</div>
+  </div>
         </div>
       </div>
 
       <div class="progress-row">
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="progress-label">0 / 0</div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width: 13%;"></div></div>
+        <div class="progress-label" id="progress-label">1 / 8</div>
       </div>
 
-      <div class="flip-hint" id="flip-hint" style="display:none">👆 タップして答えを確認</div>
+      <div class="flip-hint" id="flip-hint" style="display: flex;">👆 タップして答えを確認</div>
 
-      <div id="answer-section" style="display:none">
+      <div id="answer-section" style="display: none;">
         <div class="answer-btns">
           <button class="btn btn-wrong" onclick="answer(false)">❌ 不正解</button>
           <button class="btn btn-correct" onclick="answer(true)">✅ 正解</button>
@@ -380,7 +389,7 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
   <!-- LIST -->
   <div class="page" id="page-list">
     <div class="list-header">
-      <div class="list-title" id="list-title">単語一覧</div>
+      <div class="list-title" id="list-title">🌐 英語で日本語学習 一覧</div>
       <div class="list-actions">
         <button class="btn-csv" onclick="openCsvModal()">📥 CSV読込</button>
         <button class="btn-add" onclick="openWordModal()">＋ 追加</button>
@@ -392,7 +401,95 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
       <button class="filter-btn" onclick="setFilter(&#39;mastered&#39;,this)">✅ 習得済み</button>
       <button class="filter-btn" onclick="setFilter(&#39;new&#39;,this)">🆕 未学習</button>
     </div>
-    <div class="word-list" id="word-list"></div>
+    <div class="word-list" id="word-list"><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">01助詞<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">particle</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(2)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(2)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">01助動詞<span class="badge badge-weak">苦手</span></div>
+        
+      </div>
+      <div class="wi-meaning">Auxiliary verbs</div>
+      <div class="wi-score score-bad">0%</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(3)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(3)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">01副詞<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">adverb</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(4)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(4)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">01接続詞<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">conjunction</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(5)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(5)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">01接続助詞<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">Conjunction</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(6)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(6)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">04助数詞<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">number word</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(7)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(7)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">03並列節<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">parallel clause</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(8)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(8)" title="削除">🗑</button>
+      </div>
+    </div><div class="word-item">
+      <div class="wi-info">
+        <div class="wi-word">04名詞修飾節<span class="badge badge-new">NEW</span></div>
+        
+      </div>
+      <div class="wi-meaning">noun modifying clause</div>
+      <div class="wi-score score-new">NEW</div>
+      <div class="wi-actions">
+        <button class="btn-icon" onclick="openWordModal(9)" title="編集">✏️</button>
+        <button class="btn-icon del" onclick="deleteWord(9)" title="削除">🗑</button>
+      </div>
+    </div></div>
   </div>
 </main>
 
@@ -419,8 +516,8 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
       ■ 2列: <code>単語, 意味</code><br>
       ■ 3列: <code>単語, 発音記号, 意味</code><br>
       ■ 4列: <code>単語, 発音記号, 意味, 例文</code><br>
-      例: <code>apple,/ˈæpəl/,りんご,I eat an apple.</code><br>
-      ヘッダー行は自動スキップ。UTF-8・Shift-JIS（Excel保存）どちらも対応。
+      ■ FrontText/BackText形式も自動対応<br>
+      UTF-8・Shift-JIS（Excel保存）どちらも対応。ヘッダー行は自動スキップ。
     </div>
     <div class="csv-drop-area" id="csv-drop" onclick="document.getElementById(&#39;csv-file-input&#39;).click()">
       <div class="csv-drop-icon">📂</div>
@@ -457,6 +554,14 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
       <button class="btn-icon del" onclick="deleteDeck(2)" title="削除">🗑</button>
     </div>
   
+    <div class="deck-item-manage" draggable="true" data-id="5">
+      <div class="di-handle" title="ドラッグして並び替え">⠿</div>
+      <div class="di-flag">🌐</div>
+      <div class="di-name">ウクライナ語</div>
+      <div class="di-count">0語</div>
+      <button class="btn-icon del" onclick="deleteDeck(5)" title="削除">🗑</button>
+    </div>
+  
     <div class="deck-item-manage" draggable="true" data-id="4">
       <div class="di-handle" title="ドラッグして並び替え">⠿</div>
       <div class="di-flag">🇨🇳</div>
@@ -471,14 +576,6 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
       <div class="di-name">スペイン語</div>
       <div class="di-count">0語</div>
       <button class="btn-icon del" onclick="deleteDeck(3)" title="削除">🗑</button>
-    </div>
-  
-    <div class="deck-item-manage" draggable="true" data-id="5">
-      <div class="di-handle" title="ドラッグして並び替え">⠿</div>
-      <div class="di-flag">🌐</div>
-      <div class="di-name">ウクライナ語</div>
-      <div class="di-count">0語</div>
-      <button class="btn-icon del" onclick="deleteDeck(5)" title="削除">🗑</button>
     </div>
   </div>
     <div style="font-size:0.82rem;color:var(--text-muted);margin-bottom:8px;font-weight:600">新しいデッキを作成</div>
@@ -802,39 +899,70 @@ function parseCsv(text) {
   csvParsed=[];
   const preview=document.getElementById('csv-preview');
   preview.innerHTML='';
-  let skipped=0;
-  lines.forEach((line,i)=>{
-    // simple CSV split (handles quoted fields)
+
+  if(lines.length===0){ updateCsvBtn(); return; }
+
+  // ヘッダー行を解析して列マッピングを決定
+  const headerCols=splitCsvLine(lines[0]).map(c=>c.trim().toLowerCase());
+  let colMap=null; // {word, meaning, phonetic, example} のインデックス
+  let dataStartIdx=0;
+
+  // FrontText/BackText 形式（例: Anki, 専用アプリ等）
+  const frontIdx=headerCols.findIndex(h=>h.includes('fronttext')||h==='front'||h==='表');
+  const backIdx=headerCols.findIndex(h=>h.includes('backtext')||h==='back'||h==='裏');
+  const commentIdx=headerCols.findIndex(h=>h.includes('comment')||h.includes('note')||h.includes('例文'));
+  if(frontIdx!==-1 && backIdx!==-1){
+    colMap={word:frontIdx, meaning:backIdx, phonetic:-1, example:commentIdx};
+    dataStartIdx=1;
+    preview.innerHTML+=`<div style="font-size:0.78rem;color:var(--accent);margin-bottom:6px">📋 FrontText/BackText形式を検出</div>`;
+  }
+  // 標準ヘッダー形式
+  else if(headerCols.some(h=>['word','単語','english','英語','front'].includes(h))){
+    const wIdx=headerCols.findIndex(h=>['word','単語','english','英語','front'].includes(h));
+    const mIdx=headerCols.findIndex(h=>['meaning','意味','japanese','日本語','back','translation'].includes(h));
+    const pIdx=headerCols.findIndex(h=>['phonetic','発音','pronunciation','読み'].includes(h));
+    const eIdx=headerCols.findIndex(h=>['example','例文','sentence','comment'].includes(h));
+    if(wIdx!==-1&&mIdx!==-1){ colMap={word:wIdx,meaning:mIdx,phonetic:pIdx,example:eIdx}; dataStartIdx=1; }
+  }
+
+  const dataLines=lines.slice(dataStartIdx);
+  dataLines.forEach((line,i)=>{
     const cols=splitCsvLine(line);
-    if(cols.length<2){
-      if(i===0&&(cols[0].toLowerCase().includes('word')||cols[0].toLowerCase().includes('単語'))){skipped++;return;}
-      preview.innerHTML+=`<div class="csv-preview-item csv-preview-err">行${i+1}: スキップ（列不足）— ${escHtml(line.slice(0,40))}</div>`;
-      return;
-    }
     const trimmed=cols.map(c=>c.trim());
-    const word=trimmed[0]||'';
-    // 列数で振り分け
-    // 2列: 単語, 意味
-    // 3列: 単語, 発音記号, 意味
-    // 4列: 単語, 発音記号, 意味, 例文
-    let phonetic='', meaning='', example='';
-    if(cols.length===2){
-      meaning=trimmed[1]||'';
-    } else if(cols.length===3){
-      phonetic=trimmed[1]||''; meaning=trimmed[2]||'';
+    let word='', phonetic='', meaning='', example='';
+
+    if(colMap){
+      // ヘッダー対応マッピング
+      word=trimmed[colMap.word]||'';
+      meaning=trimmed[colMap.meaning]||'';
+      phonetic=colMap.phonetic>=0?(trimmed[colMap.phonetic]||''):'';
+      example=colMap.example>=0?(trimmed[colMap.example]||''):'';
     } else {
-      phonetic=trimmed[1]||''; meaning=trimmed[2]||''; example=trimmed[3]||'';
+      // 列数で自動判定
+      // 2列: 単語, 意味
+      // 3列: 単語, 発音記号, 意味
+      // 4列以上: 単語, 発音記号, 意味, 例文
+      if(trimmed.length<2){ return; }
+      word=trimmed[0]||'';
+      if(trimmed.length===2){ meaning=trimmed[1]||''; }
+      else if(trimmed.length===3){ phonetic=trimmed[1]||''; meaning=trimmed[2]||''; }
+      else { phonetic=trimmed[1]||''; meaning=trimmed[2]||''; example=trimmed[3]||''; }
     }
+
     if(!word||!meaning){
-      preview.innerHTML+=`<div class="csv-preview-item csv-preview-err">行${i+1}: スキップ（単語または意味が空）— ${escHtml(line.slice(0,40))}</div>`;
+      preview.innerHTML+=`<div class="csv-preview-item csv-preview-err">行${dataStartIdx+i+1}: スキップ（単語または意味が空）</div>`;
       return;
     }
     csvParsed.push({word,phonetic,meaning,example});
     preview.innerHTML+=`<div class="csv-preview-item csv-preview-ok">✅ ${escHtml(word)} — ${escHtml(meaning)}</div>`;
   });
+  updateCsvBtn();
+}
+
+function updateCsvBtn(){
   const btn=document.getElementById('btn-csv-import');
-  if(csvParsed.length>0){ btn.disabled=false; btn.style.opacity='1'; }
-  else { btn.disabled=true; btn.style.opacity='0.5'; }
+  btn.disabled=csvParsed.length===0;
+  btn.style.opacity=csvParsed.length>0?'1':'0.5';
 }
 
 function splitCsvLine(line) {
