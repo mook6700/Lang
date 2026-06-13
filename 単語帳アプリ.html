@@ -339,9 +339,19 @@ function load() {
   if (!state.currentDeckId) state.currentDeckId = state.decks[0].id;
 }
 function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-  if (window._fbReady) {
-    window._fbDB.set(state).catch(function(e){ console.warn('Firebase save error', e); });
+  // Firebaseに保存（Firebaseが唯一の真実のソース）
+  if (window._fbReady && window._fbDB) {
+    window._fbDB.set(state).then(function(){
+      showSyncStatus('synced');
+    }).catch(function(e){
+      console.warn('Firebase save error', e);
+      showSyncStatus('error');
+      // Firebaseが失敗した場合はlocalStorageにも保存
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e2) {}
+    });
+  } else {
+    // Firebase未接続の場合はlocalStorageに保存
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
   }
 }
 
@@ -752,45 +762,32 @@ document.addEventListener('keydown',function(e){
     window._fbDB = db;
     window._fbReady = false;
 
-    // 起動時：まずFirebaseのデータを1回だけ読む
-    db.once('value', function(snap) {
+    // Firebaseをリアルタイム監視 - Firebaseが唯一の真実のソース
+    db.on('value', function(snap) {
       var fbData = snap.val();
-      var fbCount = fbData && fbData.decks ? fbData.decks.reduce(function(s,d){return s+d.words.length;},0) : 0;
-      var localCount = state.decks ? state.decks.reduce(function(s,d){return s+d.words.length;},0) : 0;
 
-      if (localCount >= fbCount) {
-        // ローカルの方が多い or 同じ → ローカルをFirebaseに送る
-        db.set(state).then(function() {
-          window._fbReady = true;
-          showSyncStatus('synced');
-        }).catch(function(e) {
-          showSyncStatus('error');
-        });
-      } else {
-        // Firebaseの方が多い → Firebaseを採用
+      if (fbData && fbData.decks && fbData.decks.length > 0) {
+        // Firebaseにデータがある → それをそのまま使う
         state = fbData;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
         renderDeckSelector(); updateStats(); buildAndRender();
-        window._fbReady = true;
-        showSyncStatus('synced');
+        if (document.getElementById('page-list').classList.contains('active')) renderList();
+      } else {
+        // Firebaseが空 → 初期サンプルデータをFirebaseに書き込む
+        var initData = {decks:[{id:1,name:'英語基礎',lang:'英語',words:[
+          {id:1,word:'perseverance',phonetic:'/pəːrsɪˈvɪərəns/',meaning:'忍耐・粘り強さ',example:'Perseverance is the key to success.',correct:0,wrong:0},
+          {id:2,word:'eloquent',phonetic:'/ˈeləkwənt/',meaning:'雄弁な・説得力のある',example:'She gave an eloquent speech.',correct:2,wrong:1},
+          {id:3,word:'ambiguous',phonetic:'/æmˈbɪɡjuəs/',meaning:'曖昧な・多義的な',example:'The instructions were ambiguous.',correct:0,wrong:3}
+        ]}], currentDeckId:1};
+        state = initData;
+        db.set(initData);
+        renderDeckSelector(); updateStats(); buildAndRender();
       }
 
-      // その後はリアルタイム監視（他の端末からの変更を受け取る）
-      db.on('value', function(snap2) {
-        if (!window._fbReady) return;
-        var data = snap2.val();
-        if (!data || !data.decks) return;
-        var cnt = data.decks.reduce(function(s,d){return s+d.words.length;},0);
-        var localCnt = state.decks ? state.decks.reduce(function(s,d){return s+d.words.length;},0) : 0;
-        if (cnt > localCnt) {
-          state = data;
-          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-          renderDeckSelector(); updateStats(); buildAndRender();
-          if (document.getElementById('page-list').classList.contains('active')) renderList();
-          showSyncStatus('synced');
-        }
-      });
+      window._fbReady = true;
+      showSyncStatus('synced');
     }, function(err) {
+      console.warn('Firebase error:', err);
       showSyncStatus('error');
     });
   } catch(e) {
@@ -830,8 +827,7 @@ function migrateOldData() {
     } catch(e) {}
   }
 }
-migrateOldData();
-load();
+// Firebaseが接続されるまでの初期表示
 renderDeckSelector();
 updateStats();
 buildAndRender();
