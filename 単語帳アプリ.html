@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///C:/Users/User/Downloads/flashcard_app_18.html -->
+<!-- saved from url=(0053)file:///C:/Users/User/Downloads/flashcard_app_19.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -420,9 +420,27 @@ function saveState() {
     .catch(function(e){ setSyncStatus('error','保存失敗'); isSaving=false; });
 }
 
+// 5秒以内にFirebaseが応答しなければローカルで起動
+var firebaseReady = false;
+setTimeout(function() {
+  if (!firebaseReady) {
+    console.warn('Firebase timeout - starting with local data');
+    initApp(null);
+  }
+}, 5000);
+
 DB.on('value', function(snap) {
   if (isSaving) return;
-  var data = snap.val();
+  firebaseReady = true;
+  initApp(snap.val());
+  setSyncStatus('synced','同期済み');
+}, function(err){
+  firebaseReady = true;
+  setSyncStatus('error','オフライン');
+  initApp(null);
+});
+
+function initApp(data) {
   if (data && data.decks && data.decks.length) {
     state = data;
   } else {
@@ -434,7 +452,7 @@ DB.on('value', function(snap) {
         {id:3,word:'ambiguous',phonetic:'/æmˈbɪɡjuəs/',meaning:'曖昧な・多義的な',example:'The instructions were ambiguous.',correct:0,wrong:3}
       ]
     }], currentDeckId:1 };
-    saveState();
+    if (data !== null) saveState(); // Firebaseに繋がっている場合のみ保存
   }
   if (!state.currentDeckId) state.currentDeckId = state.decks[0].id;
   renderDeckSelector();
@@ -442,11 +460,7 @@ DB.on('value', function(snap) {
   startSession();
   if (document.getElementById('page-list').classList.contains('active')) renderList();
   document.getElementById('loading-screen').style.display = 'none';
-  setSyncStatus('synced','同期済み');
-}, function(err){
-  setSyncStatus('error','接続エラー');
-  document.getElementById('loading-screen').style.display = 'none';
-});
+}
 
 // ===== HELPERS =====
 function currentDeck() { return state.decks.find(function(d){return d.id===state.currentDeckId;})||state.decks[0]; }
