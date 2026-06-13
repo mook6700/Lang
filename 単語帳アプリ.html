@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)file:///C:/Users/User/Downloads/flashcard_app_23.html -->
+<!-- saved from url=(0053)file:///C:/Users/User/Downloads/flashcard_app_24.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -165,6 +165,7 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
     <select class="deck-selector" id="deck-selector" onchange="switchDeck()"><option value="1" selected="">🇺🇸 英語基礎</option></select>
     <button class="btn-deck-manage" onclick="openDeckModal()">＋ デッキ管理</button>
   </div>
+  <div id="sync-badge" style="font-size:0.75rem;color:#16a34a;white-space:nowrap">● 同期中</div>
   <div class="nav-tabs">
     <button class="tab-btn active" id="tab-study" onclick="showPage(&#39;study&#39;)">学習</button>
     <button class="tab-btn" id="tab-list" onclick="showPage(&#39;list&#39;)">単語帳</button>
@@ -301,6 +302,8 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
   </div>
 </div>
 
+<script src="./単語帳アプリ_files/firebase-app-compat.js.ダウンロード"></script>
+<script src="./単語帳アプリ_files/firebase-database-compat.js.ダウンロード"></script>
 <script>
 var STORAGE_KEY = 'tangocho_v3';
 var LANG_FLAGS = {'英語':'🇺🇸','中国語':'🇨🇳','韓国語':'🇰🇷','スペイン語':'🇪🇸','フランス語':'🇫🇷','ドイツ語':'🇩🇪','その他':'🌐'};
@@ -332,7 +335,12 @@ function load() {
   }
   if (!state.currentDeckId) state.currentDeckId = state.decks[0].id;
 }
-function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {} }
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  if (window._fbReady) {
+    window._fbDB.set(state).catch(function(e){ console.warn('Firebase save error', e); });
+  }
+}
 
 // ===== HELPERS =====
 function curDeck() { return state.decks.find(function(d){return d.id===state.currentDeckId;})||state.decks[0]; }
@@ -723,6 +731,64 @@ document.addEventListener('keydown',function(e){
   if(e.key==='ArrowRight'){flipped?answer(true):goCard(1);}
   if(e.key==='ArrowLeft'){flipped?answer(false):goCard(-1);}
 });
+
+// ===== FIREBASE SYNC =====
+(function() {
+  try {
+    var cfg = {
+      apiKey: "AIzaSyD0sF22z5xmk2YEF0DbhlERmht05Dvbcr0",
+      authDomain: "tangocho-37beb.firebaseapp.com",
+      databaseURL: "https://tangocho-37beb-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "tangocho-37beb",
+      storageBucket: "tangocho-37beb.firebasestorage.app",
+      messagingSenderId: "915908462845",
+      appId: "1:915908462845:web:b33085962c3367692f5694"
+    };
+    firebase.initializeApp(cfg);
+    var db = firebase.database().ref('tangocho');
+    window._fbDB = db;
+    window._fbReady = false;
+
+    // Firebaseからデータを受信したら更新
+    db.on('value', function(snap) {
+      var data = snap.val();
+      if (data && data.decks && data.decks.length) {
+        // ローカルより新しいデータがあれば上書き
+        var local = null;
+        try { local = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch(e) {}
+        // デッキ数が多い方を採用
+        var localCount = local && local.decks ? local.decks.reduce(function(s,d){return s+d.words.length;},0) : 0;
+        var fbCount = data.decks.reduce(function(s,d){return s+d.words.length;},0);
+        if (fbCount >= localCount) {
+          state = data;
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+          renderDeckSelector();
+          updateStats();
+          buildAndRender();
+          if (document.getElementById('page-list').classList.contains('active')) renderList();
+        }
+      }
+      window._fbReady = true;
+      // 初回接続時にローカルデータをFirebaseに送る
+      if (!data || !data.decks) {
+        db.set(state).catch(function(e){ console.warn(e); });
+      }
+      showSyncStatus('synced');
+    }, function(err) {
+      console.warn('Firebase error:', err);
+      showSyncStatus('error');
+    });
+  } catch(e) {
+    console.warn('Firebase init error:', e);
+  }
+})();
+
+function showSyncStatus(s) {
+  var el = document.getElementById('sync-badge');
+  if (!el) return;
+  if (s === 'synced') { el.textContent = '● 同期済み'; el.style.color = '#16a34a'; }
+  else if (s === 'error') { el.textContent = '● オフライン'; el.style.color = '#dc2626'; }
+}
 
 // ===== INIT =====
 // 旧バージョンのデータを移行
