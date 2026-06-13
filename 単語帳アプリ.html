@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0052)file:///C:/Users/User/Downloads/flashcard_app_6.html -->
+<!-- saved from url=(0052)file:///C:/Users/User/Downloads/flashcard_app_7.html -->
 <html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,10 +84,19 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
 .card-front { background: linear-gradient(135deg, #ffffff 0%, #eef1ff 100%); border: 1.5px solid var(--border); }
 .card-back { background: linear-gradient(135deg, #f0fff4 0%, #dcfce7 100%); border: 1.5px solid #bbf7d0; transform: rotateY(180deg); }
 .card-hint { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 600; }
-.card-word { font-size: 2.1rem; font-weight: 800; color: var(--text); margin-bottom: 6px; line-height: 1.15; }
+.card-word { font-size: 3.1rem; font-weight: 800; color: var(--text); margin-bottom: 6px; line-height: 1.15; }
 .card-phonetic { font-size: 0.97rem; color: var(--accent2); margin-bottom: 4px; }
-.card-meaning { font-size: 1.25rem; font-weight: 700; color: var(--green); margin-bottom: 8px; }
+.card-meaning { font-size: 1.85rem; font-weight: 700; color: var(--green); margin-bottom: 8px; }
 .card-example { font-size: 0.88rem; color: var(--text-muted); font-style: italic; max-width: 380px; line-height: 1.55; }
+.tts-btn {
+  margin-top: 12px; background: var(--accent-light); color: var(--accent);
+  border: 1.5px solid #c7d2fe; border-radius: 20px; padding: 6px 16px;
+  font-size: 1rem; cursor: pointer; transition: all 0.16s; display: inline-flex;
+  align-items: center; gap: 5px;
+}
+.tts-btn:hover { background: var(--accent); color: #fff; }
+.tts-btn-back { background: #f0fdf4; color: var(--green); border-color: #86efac; }
+.tts-btn-back:hover { background: var(--green); color: #fff; }
 .card-tag { position: absolute; top: 12px; right: 14px; font-size: 0.68rem; padding: 3px 9px; border-radius: 20px; font-weight: 700; background: var(--surface3); color: var(--text-muted); border: 1px solid var(--border); }
 .card-tag.weak { background: var(--red-bg); color: var(--red); border-color: #fca5a5; }
 .card-tag.newword { background: var(--accent-light); color: var(--accent); border-color: #c7d2fe; }
@@ -186,7 +195,7 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
 
 @media (max-width: 520px) {
   main { padding: 12px; }
-  .card-word { font-size: 1.6rem; }
+  .card-word { font-size: 2.2rem; }
   .stats-bar { gap: 7px; }
   .stat-num { font-size: 1.5rem; }
   .wi-meaning { display: none; }
@@ -209,7 +218,7 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
 <nav>
   <div class="logo">📖 単語帳</div>
   <div class="deck-selector-wrap">
-    <select class="deck-selector" id="deck-selector" onchange="switchDeck()"><option value="1" selected="">🇺🇸 英語基礎</option></select>
+    <select class="deck-selector" id="deck-selector" onchange="switchDeck()"><option value="1">🇺🇸 英語基礎</option><option value="2" selected="">🌐 英語で日本語学習</option><option value="3">🌐 ウクライナ語</option><option value="4">🇪🇸 スペイン語</option><option value="5">🇨🇳 中国語</option></select>
     <button class="btn-deck-manage" onclick="openDeckModal()">+ デッキ管理</button>
   </div>
   <div class="nav-tabs">
@@ -221,20 +230,20 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
 <main>
   <div class="page active" id="page-study">
     <div class="stats-bar">
-      <div class="stat-card s-total"><div class="stat-num" id="total-count">3</div><div class="stat-label">総単語数</div></div>
+      <div class="stat-card s-total"><div class="stat-num" id="total-count">8</div><div class="stat-label">総単語数</div></div>
       <div class="stat-card s-green"><div class="stat-num" id="mastered-count">0</div><div class="stat-label">習得済み</div></div>
-      <div class="stat-card s-yellow"><div class="stat-num" id="weak-count">1</div><div class="stat-label">苦手</div></div>
+      <div class="stat-card s-yellow"><div class="stat-num" id="weak-count">2</div><div class="stat-label">苦手</div></div>
     </div>
     <div id="study-area" style="display: block;">
       <div class="card-area" id="card-area" onclick="flipCard()">
         <div class="card-inner" id="card-inner">
-          <div class="card-face card-front" id="card-front"><div class="card-tag weak">⚡ 苦手</div><div class="card-hint">英語</div><div class="card-word">ambiguous</div><div class="card-phonetic">/æmˈbɪɡjuəs/</div></div>
-          <div class="card-face card-back" id="card-back"><div class="card-hint">意味</div><div class="card-meaning">曖昧な・多義的な</div><div class="card-example">The instructions were ambiguous.</div></div>
+          <div class="card-face card-front" id="card-front"><div class="card-tag weak">⚡ 苦手</div><div class="card-hint">その他</div><div class="card-word">01接続詞</div></div>
+          <div class="card-face card-back" id="card-back"><div class="card-hint">意味</div><div class="card-meaning">conjunction</div></div>
         </div>
       </div>
       <div class="progress-row">
         <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="progress-label">0 / 3</div>
+        <div class="progress-label" id="progress-label">0 / 8</div>
       </div>
       <div class="flip-hint" id="flip-hint" style="display: flex;">👆 タップして答えを確認</div>
       <div id="answer-section" style="display:none">
@@ -265,6 +274,7 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
       <div class="list-title" id="list-title">単語一覧</div>
       <div class="list-actions">
         <button class="btn-csv" onclick="openCsvModal()">📥 CSV読込</button>
+        <button class="btn-csv" onclick="exportCsv()" style="background:var(--accent-light);color:var(--accent);border-color:#c7d2fe">📤 CSV書出</button>
         <button class="btn-add" onclick="openWordModal()">＋ 追加</button>
       </div>
     </div>
@@ -327,6 +337,12 @@ main { flex: 1; padding: 20px; max-width: 720px; margin: 0 auto; width: 100%; }
     <div class="form-group">
       <label class="form-label">デッキ名 *</label>
       <input class="form-input" id="new-deck-name" placeholder="例: TOEIC 頻出単語">
+    </div>
+    <div class="form-group">
+      <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="checkbox" id="new-deck-shuffle" checked="" style="width:16px;height:16px;accent-color:var(--accent)">
+        自動シャッフルを有効にする
+      </label>
     </div>
     <div class="form-group">
       <label class="form-label">言語を選択</label>
@@ -473,7 +489,11 @@ function updateStats() {
 // ===== SESSION =====
 function buildSession(weakOnly=false) {
   let pool = weakOnly ? currentWords().filter(isWeak) : [...currentWords()];
-  return [...shuffle(pool.filter(isWeak)), ...shuffle(pool.filter(w=>!isWeak(w)))];
+  const deck = currentDeck();
+  const doShuffle = deck?.shuffle !== false; // デフォルトtrue
+  const weak = pool.filter(isWeak);
+  const rest = pool.filter(w=>!isWeak(w));
+  return [...(doShuffle?shuffle(weak):weak), ...(doShuffle?shuffle(rest):rest)];
 }
 function startSession(weakOnly=false) {
   session=buildSession(weakOnly); sessionIdx=0; sessionCorrect=0; sessionWrong=0;
@@ -676,6 +696,9 @@ function renderDeckManageList() {
       <div class="di-flag">${LANG_FLAGS[d.lang]||'🌐'}</div>
       <div class="di-name">${escHtml(d.name)}</div>
       <div class="di-count">${d.words.length}語</div>
+      <label style="display:flex;align-items:center;gap:4px;font-size:0.75rem;color:var(--text-muted);cursor:pointer;flex-shrink:0" title="シャッフル">
+        <input type="checkbox" ${d.shuffle!==false?'checked':''} onchange="toggleShuffle(${d.id},this.checked)" style="accent-color:var(--accent);width:14px;height:14px">🔀
+      </label>
       <button class='btn-icon del' onclick='deleteDeck(${d.id})' title='削除'>🗑</button>
     </div>
   `).join('');
@@ -690,7 +713,8 @@ window.createDeck = function() {
   const name=document.getElementById('new-deck-name').value.trim();
   if(!name){alert('デッキ名を入力してください');return;}
   const id=nextDeckId();
-  state.decks.push({id,name,lang:selectedLang,words:[]});
+  const doShuffle = document.getElementById('new-deck-shuffle').checked;
+  state.decks.push({id,name,lang:selectedLang,shuffle:doShuffle,words:[]});
   state.currentDeckId=id;
   saveState(); renderDeckSelector(); renderDeckManageList();
   document.getElementById('new-deck-name').value='';
@@ -729,6 +753,48 @@ function initDeckDragSort() {
 function openModal(id){document.getElementById(id).classList.add('open');}
 window.closeModal = function(id){document.getElementById(id).classList.remove('open');};
 window.closeModalOutside = function(e,id){if(e.target===document.getElementById(id))closeModal(id);};
+
+// ===== CSV EXPORT =====
+window.exportCsv = function() {
+  const deck = currentDeck();
+  if (!deck) return;
+  const words = deck.words;
+  if (!words.length) { alert('書き出す単語がありません'); return; }
+  const bom = '\uFEFF';
+  const header = '単語,発音記号,意味,例文,正解数,不正解数\r\n';
+  const rows = words.map(w => {
+    const cols = [w.word, w.phonetic||'', w.meaning, w.example||'', w.correct||0, w.wrong||0];
+    return cols.map(c => {
+      const s = String(c);
+      return (s.includes(',') || s.includes('\n') || s.includes('"'))
+        ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(',');
+  }).join('\r\n');
+  const blob = new Blob([bom+header+rows], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = deck.name.replace(/[\\/\:*?"<>|]/g, '_') + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+};
+
+// ===== SHUFFLE TOGGLE =====
+window.toggleShuffle = function(id, val) {
+  const deck = state.decks.find(d=>Number(d.id)===Number(id));
+  if(deck){ deck.shuffle=val; saveState(); }
+};
+
+// ===== TTS =====
+function speakText(text, lang) {
+  if (!('speechSynthesis' in window)) { alert('このブラウザは音声読み上げに対応していません'); return; }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = lang;
+  utter.rate = 0.9;
+  window.speechSynthesis.speak(utter);
+}
+window.speakText = speakText;
 
 // ===== KEYBOARD =====
 document.addEventListener('keydown',e=>{
