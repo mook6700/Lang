@@ -366,7 +366,7 @@ function nextDeckId() { return state.decks.length?Math.max.apply(null,state.deck
 function nextWordId() { var w=curWords(); return w.length?Math.max.apply(null,w.map(function(x){return x.id;}))+1:1; }
 function getScore(w) { var t=w.correct+w.wrong; return t?Math.round(w.correct/t*100):null; }
 function isWeak(w) { var s=getScore(w); return s!==null&&s<60; }
-function isMastered(w) { var s=getScore(w); return s!==null&&s>=80&&w.correct>=2; }
+function isMastered(w) { return w.correct>=3; }
 function esc(s) { return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
 function shu(arr) { var a=arr.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
 
