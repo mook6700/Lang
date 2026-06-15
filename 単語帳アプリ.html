@@ -338,7 +338,11 @@ function load() {
   }
   if (!state.currentDeckId) state.currentDeckId = state.decks[0].id;
 }
+var lastLocalSaveTime = 0;
+
 function save() {
+  state.savedAt = Date.now();
+  lastLocalSaveTime = state.savedAt;
   // Firebaseに保存（Firebaseが唯一の真実のソース）
   if (window._fbReady && window._fbDB) {
     window._fbDB.set(state).then(function(){
@@ -766,6 +770,13 @@ document.addEventListener('keydown',function(e){
     db.on('value', function(snap) {
       var fbData = snap.val();
 
+      // 自分が送った更新より古いデータは無視（古いタブが上書きするのを防ぐ）
+      if (fbData && fbData.savedAt && fbData.savedAt < lastLocalSaveTime) {
+        window._fbReady = true;
+        showSyncStatus('synced');
+        return;
+      }
+
       if (fbData && fbData.decks && fbData.decks.length > 0) {
         // Firebaseにデータがある → それをそのまま使う
         state = fbData;
@@ -831,6 +842,24 @@ function migrateOldData() {
 renderDeckSelector();
 updateStats();
 buildAndRender();
+
+// タブ/画面が再表示されたら最新データを取得（スマホがスリープから復帰した時の対策）
+document.addEventListener('visibilitychange', function() {
+  if (!document.hidden && window._fbDB) {
+    window._fbDB.once('value').then(function(snap) {
+      var fbData = snap.val();
+      if (fbData && fbData.decks && fbData.decks.length > 0) {
+        if (!fbData.savedAt || fbData.savedAt >= lastLocalSaveTime) {
+          state = fbData;
+          try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+          renderDeckSelector(); updateStats(); buildAndRender();
+          if (document.getElementById('page-list').classList.contains('active')) renderList();
+          showSyncStatus('synced');
+        }
+      }
+    }).catch(function(e){ console.warn(e); });
+  }
+});
 </script>
 </body>
 </html>
