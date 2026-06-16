@@ -770,18 +770,32 @@ document.addEventListener('keydown',function(e){
     db.on('value', function(snap) {
       var fbData = snap.val();
 
-      // 自分が送った更新より古いデータは無視（古いタブが上書きするのを防ぐ）
-      if (fbData && fbData.savedAt && fbData.savedAt < lastLocalSaveTime) {
+      // 自分が送った更新（同じか古い）は無視（古いタブが上書きするのを防ぎ、学習中のセッションも壊さない）
+      if (fbData && fbData.savedAt && fbData.savedAt <= lastLocalSaveTime) {
         window._fbReady = true;
         showSyncStatus('synced');
         return;
       }
 
       if (fbData && fbData.decks && fbData.decks.length > 0) {
-        // Firebaseにデータがある → それをそのまま使う
+        // 他の端末からの更新 → データだけ反映し、学習中のセッション（位置）は維持する
+        var wasStudying = document.getElementById('page-study').classList.contains('active') && session.length > 0;
+        var currentWordId = wasStudying && session[sessionIdx] ? session[sessionIdx].id : null;
+
         state = fbData;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-        renderDeckSelector(); updateStats(); buildAndRender();
+        renderDeckSelector(); updateStats();
+
+        if (wasStudying) {
+          // セッションの単語データだけ更新し、位置とシャッフル順は維持
+          session = session.map(function(sw) {
+            var fresh = curWords().find(function(w){return w.id===sw.id;});
+            return fresh || sw;
+          });
+          renderCard();
+        } else {
+          buildAndRender();
+        }
         if (document.getElementById('page-list').classList.contains('active')) renderList();
       } else {
         // Firebaseが空 → 初期サンプルデータをFirebaseに書き込む
@@ -849,10 +863,20 @@ document.addEventListener('visibilitychange', function() {
     window._fbDB.once('value').then(function(snap) {
       var fbData = snap.val();
       if (fbData && fbData.decks && fbData.decks.length > 0) {
-        if (!fbData.savedAt || fbData.savedAt >= lastLocalSaveTime) {
+        if (!fbData.savedAt || fbData.savedAt > lastLocalSaveTime) {
+          var wasStudying = document.getElementById('page-study').classList.contains('active') && session.length > 0;
           state = fbData;
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-          renderDeckSelector(); updateStats(); buildAndRender();
+          renderDeckSelector(); updateStats();
+          if (wasStudying) {
+            session = session.map(function(sw) {
+              var fresh = curWords().find(function(w){return w.id===sw.id;});
+              return fresh || sw;
+            });
+            renderCard();
+          } else {
+            buildAndRender();
+          }
           if (document.getElementById('page-list').classList.contains('active')) renderList();
           showSyncStatus('synced');
         }
