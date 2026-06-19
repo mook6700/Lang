@@ -361,7 +361,7 @@ function save() {
 
 // ===== HELPERS =====
 function curDeck() { return state.decks.find(function(d){return d.id===state.currentDeckId;})||state.decks[0]; }
-function curWords() { var d=curDeck(); return d?d.words:[]; }
+function curWords() { var d=curDeck(); return (d&&d.words)?d.words:[]; }
 function nextDeckId() { return state.decks.length?Math.max.apply(null,state.decks.map(function(d){return d.id;}))+1:1; }
 function nextWordId() { var w=curWords(); return w.length?Math.max.apply(null,w.map(function(x){return x.id;}))+1:1; }
 function getScore(w) { var t=w.correct+w.wrong; return t?Math.round(w.correct/t*100):null; }
@@ -577,6 +577,7 @@ function saveWord() {
   var meaning=document.getElementById('inp-meaning').value.trim();
   if(!word||!meaning){alert('単語と意味は必須です');return;}
   var deck=curDeck(); if(!deck)return;
+  if(!deck.words) deck.words=[];
   var obj={word:word,phonetic:document.getElementById('inp-phonetic').value.trim(),meaning:meaning,example:document.getElementById('inp-example').value.trim()};
   if(editingWordId){
     var idx=deck.words.findIndex(function(w){return w.id===editingWordId;});
@@ -649,15 +650,24 @@ function parseCsv(text){
 }
 function updateCsvBtn(){var b=document.getElementById('btn-csv-ok');b.disabled=!csvParsed.length;b.style.opacity=csvParsed.length?'1':'0.5';}
 function importCsv(){
-  var deck=curDeck();if(!deck||!csvParsed.length)return;
-  var added=0,skipped=0;
-  csvParsed.forEach(function(item){
-    if(deck.words.find(function(w){return w.word.toLowerCase()===item.word.toLowerCase();})){skipped++;return;}
-    deck.words.push(Object.assign({id:nextWordId(),correct:0,wrong:0},item));added++;
-  });
-  save();closeModal('csv-modal');renderList();updateStats();
-  buildAndRender(); // 常に再構築
-  alert('✅ '+added+'件追加しました'+(skipped?' ('+skipped+'件は重複スキップ)':''));
+  try {
+    var deck=curDeck();
+    if(!deck){alert('デッキが選択されていません');return;}
+    if(!deck.words) deck.words=[];
+    if(!csvParsed.length){alert('読み込むデータがありません');return;}
+    var added=0,skipped=0;
+    csvParsed.forEach(function(item){
+      if(deck.words.find(function(w){return w.word.toLowerCase()===item.word.toLowerCase();})){skipped++;return;}
+      deck.words.push(Object.assign({id:nextWordId(),correct:0,wrong:0},item));added++;
+    });
+    closeModal('csv-modal');renderList();updateStats();
+    buildAndRender(); // 常に再構築
+    save();
+    alert('✅ '+added+'件追加しました'+(skipped?' ('+skipped+'件は重複スキップ)':''));
+  } catch(e) {
+    alert('エラーが発生しました: '+e.message);
+    console.error(e);
+  }
 }
 var csvDrop=document.getElementById('csv-drop');
 csvDrop.addEventListener('dragover',function(e){e.preventDefault();csvDrop.classList.add('drag-over');});
@@ -782,6 +792,8 @@ document.addEventListener('keydown',function(e){
         var wasStudying = document.getElementById('page-study').classList.contains('active') && session.length > 0;
         var currentWordId = wasStudying && session[sessionIdx] ? session[sessionIdx].id : null;
 
+        // Firebaseは空配列を保存しないため、wordsが消えていたら補完する
+        fbData.decks.forEach(function(d){ if(!d.words) d.words=[]; });
         state = fbData;
         try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
         renderDeckSelector(); updateStats();
@@ -865,6 +877,7 @@ document.addEventListener('visibilitychange', function() {
       if (fbData && fbData.decks && fbData.decks.length > 0) {
         if (!fbData.savedAt || fbData.savedAt > lastLocalSaveTime) {
           var wasStudying = document.getElementById('page-study').classList.contains('active') && session.length > 0;
+          fbData.decks.forEach(function(d){ if(!d.words) d.words=[]; });
           state = fbData;
           try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
           renderDeckSelector(); updateStats();
