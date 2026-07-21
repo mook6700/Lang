@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -52,6 +53,9 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
 .card-tag{position:absolute;top:12px;right:14px;font-size:0.68rem;padding:3px 9px;border-radius:20px;font-weight:700;background:var(--surface3);color:var(--text-muted);border:1px solid var(--border);}
 .card-tag.weak{background:var(--red-bg);color:var(--red);border-color:#fca5a5;}
 .card-tag.newword{background:var(--accent-light);color:var(--accent);border-color:#c7d2fe;}
+.card-star{position:absolute;top:8px;left:12px;background:none;border:none;font-size:1.5rem;line-height:1;cursor:pointer;color:#d1d5db;padding:4px;transition:transform 0.15s,color 0.15s;}
+.card-star:hover{transform:scale(1.15);}
+.card-star.on{color:#f59e0b;}
 .empty-msg{display:flex;flex-direction:column;align-items:center;gap:10px;color:var(--text-muted);}
 .empty-msg .ei{font-size:2.4rem;}
 .tts-btn{margin-top:14px;background:var(--accent-light);color:var(--accent);border:1.5px solid #c7d2fe;border-radius:20px;padding:7px 18px;font-size:0.95rem;cursor:pointer;transition:all 0.16s;}
@@ -71,6 +75,9 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
 .btn-nav:disabled{opacity:0.3;cursor:default;}
 .btn-shuffle-main{background:var(--surface);color:var(--text-muted);border:1.5px solid var(--border);border-radius:12px;padding:12px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
 .btn-shuffle-main.on{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-star-toggle{width:100%;background:var(--surface);border:1.5px solid var(--border);color:var(--text-muted);border-radius:12px;padding:11px;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all 0.18s;}
+.btn-star-toggle:hover{border-color:#f59e0b;color:#b45309;}
+.btn-star-toggle.on{background:#fef9c3;color:#b45309;border-color:#fde68a;}
 .answer-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
 .btn{border:none;border-radius:12px;padding:13px 18px;font-size:0.93rem;font-weight:700;cursor:pointer;transition:all 0.16s;display:flex;align-items:center;justify-content:center;gap:7px;}
 .btn-wrong{background:var(--red-bg);color:var(--red);border:1.5px solid #fca5a5;}
@@ -119,6 +126,9 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
 .badge{display:inline-block;font-size:0.68rem;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:5px;vertical-align:middle;}
 .badge-weak{background:var(--red-bg);color:var(--red);}
 .badge-new{background:var(--accent-light);color:var(--accent);}
+.badge-star{background:#fef9c3;color:#b45309;}
+.btn-icon.star{color:#d1d5db;}
+.btn-icon.star.on{color:#f59e0b;background:#fffbeb;border-color:#fde68a;}
 .modal-overlay{position:fixed;inset:0;background:rgba(30,34,64,0.35);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px;opacity:0;pointer-events:none;transition:opacity 0.2s;}
 .modal-overlay.open{opacity:1;pointer-events:all;}
 .modal{background:var(--surface);border:1.5px solid var(--border);border-radius:20px;padding:26px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(91,110,245,0.2);transform:translateY(16px);transition:transform 0.22s;}
@@ -201,6 +211,7 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
         <button class="btn-shuffle-main" id="btn-shuffle-main" onclick="toggleShuffle()">🔀 シャッフル</button>
         <button class="btn-nav" id="btn-next" onclick="goCard(1)" disabled>次へ ▶</button>
       </div>
+      <button class="btn-star-toggle" id="btn-star-toggle" onclick="toggleStarOnly()">⭐ ★だけを学習</button>
       <div id="answer-section" style="display:none">
         <div class="answer-btns">
           <button class="btn btn-wrong" onclick="answer(false)">❌ 不正解</button>
@@ -219,6 +230,7 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
         </div>
         <button class="btn btn-primary" onclick="restartSession()">🔄 もう一度</button>
         <button class="btn btn-secondary" onclick="startWeakSession()">⚡ 苦手だけ復習</button>
+        <button class="btn btn-secondary" onclick="startStarSession()">⭐ ★だけ復習</button>
       </div>
     </div>
   </div>
@@ -234,6 +246,7 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
     </div>
     <div class="filter-row">
       <button class="filter-btn active" onclick="setFilter('all',this)">すべて</button>
+      <button class="filter-btn" onclick="setFilter('star',this)">⭐ お気に入り</button>
       <button class="filter-btn" onclick="setFilter('weak',this)">⚡ 苦手</button>
       <button class="filter-btn" onclick="setFilter('mastered',this)">✅ 習得済み</button>
       <button class="filter-btn" onclick="setFilter('new',this)">🆕 未学習</button>
@@ -319,6 +332,7 @@ var state = {decks:[], currentDeckId:null};
 var session = [], sessionIdx = 0, sessionCorrect = 0, sessionWrong = 0;
 var flipped = false;
 var isShuffled = false;
+var currentSessionMode = 'all'; // 'all' | 'weak' | 'star'
 var currentFilter = 'all';
 var editingWordId = null;
 var csvParsed = [];
@@ -371,6 +385,7 @@ function nextWordId() { var w=curWords(); return w.length?Math.max.apply(null,w.
 function getScore(w) { var t=w.correct+w.wrong; return t?Math.round(w.correct/t*100):null; }
 function isWeak(w) { var s=getScore(w); return s!==null&&s<60; }
 function isMastered(w) { return w.correct>=3; }
+function isStar(w) { return !!w.star; }
 function esc(s) { return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''; }
 function shu(arr) { var a=arr.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
 
@@ -407,29 +422,54 @@ function updateStats() {
 }
 
 // ===== SESSION =====
-function buildSession(weakOnly) {
-  var pool = weakOnly ? curWords().filter(isWeak) : curWords().slice();
+function buildSession(mode) {
+  var pool = curWords().slice();
+  if (mode==='weak') pool = pool.filter(isWeak);
+  else if (mode==='star') pool = pool.filter(isStar);
   var weak = pool.filter(isWeak);
   var rest = pool.filter(function(w){return !isWeak(w);});
   if (isShuffled) return shu(weak).concat(shu(rest));
   return weak.concat(rest);
 }
-function buildAndRender(weakOnly) {
-  session = buildSession(weakOnly);
+function buildAndRender(mode) {
+  if (mode !== undefined) currentSessionMode = mode;
+  session = buildSession(currentSessionMode);
   sessionIdx=0; sessionCorrect=0; sessionWrong=0;
   document.getElementById('session-complete-area').style.display='none';
   document.getElementById('study-area').style.display='block';
   updateStats(); renderCard();
+  var starToggleBtn=document.getElementById('btn-star-toggle');
+  if (starToggleBtn) {
+    var isStarMode=currentSessionMode==='star';
+    starToggleBtn.classList.toggle('on', isStarMode);
+    starToggleBtn.textContent = isStarMode ? '⭐ ★だけを学習中' : '⭐ ★だけを学習';
+  }
 }
-function restartSession() { buildAndRender(false); }
-function startWeakSession() { buildAndRender(true); }
+function restartSession() { buildAndRender('all'); }
+function startWeakSession() { buildAndRender('weak'); }
+function startStarSession() { buildAndRender('star'); }
 
 function toggleShuffle() {
   isShuffled = !isShuffled;
   var btn = document.getElementById('btn-shuffle-main');
   if (isShuffled) { btn.classList.add('on'); btn.textContent='🔀 シャッフル中'; }
   else { btn.classList.remove('on'); btn.textContent='🔀 シャッフル'; }
-  buildAndRender(false);
+  buildAndRender();
+}
+
+function toggleStarOnly() {
+  if (currentSessionMode==='star') buildAndRender('all');
+  else buildAndRender('star');
+}
+
+function toggleStar(id) {
+  var deck=curDeck(); if(!deck) return;
+  var w=deck.words.find(function(x){return x.id===id;});
+  if(!w) return;
+  w.star=!w.star;
+  save();
+  renderCard();
+  renderList();
 }
 
 // ===== CARD =====
@@ -457,10 +497,12 @@ function renderCard() {
   var w=session[sessionIdx];
   var score=getScore(w);
   var tag=isWeak(w)?'<div class="card-tag weak">⚡ 苦手</div>':score===null?'<div class="card-tag newword">🆕 NEW</div>':'';
+  var starBtn='<button class="card-star'+(isStar(w)?' on':'')+'" onclick="event.stopPropagation();toggleStar('+w.id+')" title="お気に入り登録/解除">'+(isStar(w)?'★':'☆')+'</button>';
   var sw=esc(w.word).replace(/'/g,"\\'");
   var sm=esc(w.meaning).replace(/'/g,"\\'");
 
   document.getElementById('card-front').innerHTML=
+    starBtn+
     tag+
     '<div class="card-hint">'+lang+'</div>'+
     '<div class="card-word">'+esc(w.word)+'</div>'+
@@ -587,18 +629,20 @@ function renderList() {
   if(currentFilter==='weak')words=words.filter(isWeak);
   else if(currentFilter==='mastered')words=words.filter(isMastered);
   else if(currentFilter==='new')words=words.filter(function(w){return getScore(w)===null;});
+  else if(currentFilter==='star')words=words.filter(isStar);
   var el=document.getElementById('word-list');
   if(!words.length){el.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:40px 0">該当する単語はありません</div>';return;}
   el.innerHTML=words.map(function(w){
     var s=getScore(w);
     var sc=s===null?'score-new':s>=80?'score-good':s>=50?'score-mid':'score-bad';
     var st=s===null?'NEW':s+'%';
-    var badge=isWeak(w)?'<span class="badge badge-weak">苦手</span>':s===null?'<span class="badge badge-new">NEW</span>':'';
+    var badge=(isStar(w)?'<span class="badge badge-star">★</span>':'')+(isWeak(w)?'<span class="badge badge-weak">苦手</span>':s===null?'<span class="badge badge-new">NEW</span>':'');
     return '<div class="word-item">'+
       '<div class="wi-info"><div class="wi-word">'+esc(w.word)+badge+'</div>'+(w.phonetic?'<div class="wi-phonetic">'+esc(w.phonetic)+'</div>':'')+
       '</div><div class="wi-meaning">'+esc(w.meaning)+'</div>'+
       '<div class="wi-score '+sc+'">'+st+'</div>'+
       '<div class="wi-actions">'+
+        '<button class="btn-icon star'+(isStar(w)?' on':'')+'" onclick="toggleStar('+w.id+')" title="お気に入り">'+(isStar(w)?'★':'☆')+'</button>'+
         '<button class="btn-icon" onclick="openWordModal('+w.id+')" title="編集">✏️</button>'+
         '<button class="btn-icon del" onclick="deleteWord('+w.id+')" title="削除">🗑</button>'+
       '</div></div>';
@@ -816,7 +860,7 @@ document.addEventListener('keydown',function(e){
 (function() {
   try {
     var cfg = {
-      apiKey: "AIzaSyD0•••••••••••••••••••••••••••••••",
+      apiKey: "AIzaSyD0sF22z5xmk2YEF0DbhlERmht05Dvbcr0",
       authDomain: "tangocho-37beb.firebaseapp.com",
       databaseURL: "https://tangocho-37beb-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "tangocho-37beb",
