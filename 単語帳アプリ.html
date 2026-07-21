@@ -60,9 +60,12 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
 .tts-btn.back{background:#f0fdf4;color:var(--green);border-color:#86efac;}
 .tts-btn.back:hover{background:var(--green);color:#fff;}
 .progress-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
-.progress-bar{flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#a5b4fc);border-radius:4px;transition:width 0.4s;}
-.progress-label{font-size:0.8rem;color:var(--text-muted);white-space:nowrap;font-weight:600;}
+.progress-bar{flex:1;height:7px;background:var(--surface3);border-radius:4px;overflow:hidden;cursor:pointer;touch-action:none;position:relative;}
+.progress-bar:hover{height:10px;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#a5b4fc);border-radius:4px;transition:width 0.4s;pointer-events:none;}
+.progress-label{font-size:0.8rem;color:var(--text-muted);white-space:nowrap;font-weight:600;cursor:pointer;padding:2px 4px;border-radius:6px;}
+.progress-label:hover{background:var(--accent-light);color:var(--accent);}
+.progress-jump-input{width:56px;text-align:center;border:1.5px solid var(--accent);border-radius:6px;padding:2px 4px;font-size:0.8rem;font-weight:700;color:var(--text);outline:none;font-family:inherit;}
 .nav-btns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px;}
 .btn-nav{background:var(--surface);border:1.5px solid var(--border);color:var(--text-muted);border-radius:12px;padding:12px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.16s;}
 .btn-nav:hover:not(:disabled){background:var(--accent-light);color:var(--accent);border-color:var(--accent);}
@@ -190,8 +193,8 @@ main{flex:1;padding:20px;max-width:720px;margin:0 auto;width:100%;}
         </div>
       </div>
       <div class="progress-row">
-        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-        <div class="progress-label" id="progress-label">0 / 0</div>
+        <div class="progress-bar" id="progress-bar" onpointerdown="progressPointerDown(event)" title="クリック/ドラッグで移動"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+        <div class="progress-label" id="progress-label" onclick="openJumpInput()" title="クリックして番号を入力">0 / 0</div>
       </div>
       <div class="flip-hint" id="flip-hint">👆 カードをタップして裏返す</div>
       <div class="nav-btns">
@@ -490,6 +493,53 @@ function goCard(dir) {
   var n=sessionIdx+dir;
   if (n<0||n>=session.length) return;
   sessionIdx=n; renderCard();
+}
+
+// ===== PROGRESS BAR JUMP (クリック/ドラッグで任意の単語へ移動) =====
+var progressDragging=false;
+function jumpToProgressPosition(clientX){
+  if(!session.length) return;
+  var bar=document.getElementById('progress-bar');
+  var rect=bar.getBoundingClientRect();
+  var ratio=(clientX-rect.left)/rect.width;
+  ratio=Math.min(Math.max(ratio,0),0.999999);
+  var idx=Math.floor(ratio*session.length);
+  if(idx!==sessionIdx){ sessionIdx=idx; renderCard(); }
+}
+function progressPointerDown(e){
+  if(!session.length) return;
+  progressDragging=true;
+  jumpToProgressPosition(e.clientX);
+  e.preventDefault();
+}
+document.addEventListener('pointermove',function(e){
+  if(progressDragging) jumpToProgressPosition(e.clientX);
+});
+document.addEventListener('pointerup',function(){ progressDragging=false; });
+
+// ===== 番号を直接入力してジャンプ =====
+var jumpConfirmed=false;
+function openJumpInput(){
+  if(!session.length) return;
+  jumpConfirmed=false;
+  var label=document.getElementById('progress-label');
+  var current=sessionIdx+1;
+  label.innerHTML='<input type="number" class="progress-jump-input" id="jump-input" min="1" max="'+session.length+'" value="'+current+'">';
+  var inp=document.getElementById('jump-input');
+  inp.focus(); inp.select();
+  inp.addEventListener('click',function(e){e.stopPropagation();});
+  inp.addEventListener('keydown',function(e){
+    e.stopPropagation();
+    if(e.key==='Enter'){ confirmJump(inp.value); }
+    else if(e.key==='Escape'){ jumpConfirmed=true; renderCard(); }
+  });
+  inp.addEventListener('blur',function(){ if(!jumpConfirmed) confirmJump(inp.value); });
+}
+function confirmJump(val){
+  jumpConfirmed=true;
+  var n=parseInt(val,10);
+  if(!isNaN(n)&&n>=1&&n<=session.length){ sessionIdx=n-1; }
+  renderCard();
 }
 
 function answer(correct) {
